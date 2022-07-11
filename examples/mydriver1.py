@@ -60,11 +60,11 @@ def row(world):
     y = world.car.y
     next_row = list()
 
-    if right_balance > 0:
+    if right_balance == 1:
         next_row = [(x - 2, y - 1), (x-1, y-1), (x, y-1)]
     elif right_balance == 0:
         next_row = [(x - 1, y - 1), (x, y - 1), (x + 1, y - 1)]
-    elif right_balance < 0:
+    elif right_balance == -1:
         next_row = [(x, y - 1), (x + 1, y - 1), (x - 2, y - 1)]
 
     next_row_scores = pos_to_score(world, next_row)
