@@ -73,9 +73,11 @@ def row(world):
         # go mid
         if right_balance > 0:
             # left
+            right_balance -= 1
             return actions.LEFT
         elif right_balance < 0:
             # right
+            right_balance += 1
             return actions.RIGHT
         else:
             # stay
@@ -85,9 +87,11 @@ def row(world):
         best_pos = next_row[best_index]
         if x - best_pos[0] > 0:
             # left
+            right_balance -= 1
             return actions.LEFT
         elif x - best_pos[0] < 0:
             # right
+            right_balance += 1
             return actions.RIGHT
         else:
             # straight
