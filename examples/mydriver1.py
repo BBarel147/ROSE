@@ -57,7 +57,7 @@ def find_best(row):
 def row(world):
     global right_balance
     x = world.car.x
-    y = world.car.y
+    y = world.car.y - 1
     next_row = list()
 
     if right_balance == 1:
