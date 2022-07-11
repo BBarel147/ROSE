@@ -103,8 +103,8 @@ def drive(world):
 
     x = world.car.x
     y = world.car.y
-    obstacle = world.get((x, y - 1))
-    if world.get((x, y)) == obstacles.PENGUIN:
+    obstacle = world.get((x, y))
+    if obstacle == obstacles.PENGUIN:
         return actions.PICKUP
     elif obstacle == obstacles.WATER:
         return actions.BRAKE
