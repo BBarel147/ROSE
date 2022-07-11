@@ -3,7 +3,7 @@ This driver does not do any action.
 """
 from rose.common import obstacles, actions  # NOQA
 
-driver_name = "No Driver"
+driver_name = "furious"
 
 
 def drive(world):
