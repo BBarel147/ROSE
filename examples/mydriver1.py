@@ -71,11 +71,11 @@ def row(world):
     best_index = find_best(next_row_scores)
     if next_row_scores[best_index] == 0 and next_row_scores[1] == 0:
         # go mid
-        if right_balance > 0:
+        if right_balance == 1:
             # left
             right_balance -= 1
             return actions.LEFT
-        elif right_balance < 0:
+        elif right_balance == -1:
             # right
             right_balance += 1
             return actions.RIGHT
