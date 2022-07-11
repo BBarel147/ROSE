@@ -99,22 +99,22 @@ def row(world):
 
 
 def drive(world):
+
+
+    x = world.car.x
+    y = world.car.y
+    obstacle = world.get((x, y - 1))
+    if world.get((x, y)) == obstacles.PENGUIN:
+        return actions.PICKUP
+    elif obstacle == obstacles.WATER:
+        return actions.BRAKE
+    elif obstacle == obstacles.CRACK:
+        return actions.JUMP
+    elif obstacle == obstacles.TRASH:
+        return row(world)
+    elif obstacle == obstacles.BIKE:
+        return row(world)
+    elif obstacle == obstacles.BARRIER:
+        return row(world)
     return row(world)
 
-    # x = world.car.x
-    # y = world.car.y
-    # obstacle = world.get((x, y - 1))
-    # if world.get((x, y)) == obstacles.PENGUIN:
-    #     return actions.PICKUP
-    # elif obstacle == obstacles.WATER:
-    #     return actions.BRAKE
-    # elif obstacle == obstacles.TRASH:
-    #     return move()
-    # elif obstacle == obstacles.CRACK:
-    #     return actions.JUMP
-    # elif obstacle == obstacles.BIKE:
-    #     return move()
-    # elif obstacle == obstacles.BARRIER:
-    #     return move()
-
-    return actions.NONE
