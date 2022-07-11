@@ -118,3 +118,4 @@ def drive(world):
     #     return move()
     # elif obstacle == obstacles.BARRIER:
     #     return move()
+    return actions.NONE
