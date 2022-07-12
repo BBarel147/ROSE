@@ -3,18 +3,28 @@ This driver does not do any action.
 """
 from rose.common import obstacles, actions  # NOQA
 
-driver_name = "Amit"
-right_balance = 0
+driver_name = "Yakif"
+action_list = list()
+cnt = 0
+steps = 0
+x1, x2, x3 = 0, 0, 0
+got_x_values = False
+num_of_steps = 5
 
 
-def move():  # * - *
-    global right_balance
-    if right_balance < 1:
-        right_balance += 1
-        return actions.RIGHT
-    elif right_balance > -1:
-        right_balance -= 1
-        return actions.LEFT
+def get_x_values(x):
+    global got_x_values, x1, x2, x3
+    if not got_x_values:
+        x1 = x - 1
+        x2 = x
+        x3 = x + 1
+        got_x_values = True
+
+
+def row(y):
+    global x1, x2, x3
+    res = [(x1, y), (x2, y), (x3, y)]
+    return res
 
 
 def pos_to_score(world, pos):
@@ -22,7 +32,6 @@ def pos_to_score(world, pos):
     res = list()
     for item in pos:
         temp.append(world.get(item))
-    score = 0
     for item in temp:
         if item == obstacles.PENGUIN:
             score = 10
@@ -39,82 +48,148 @@ def pos_to_score(world, pos):
         else:
             score = 0
         res.append(score)
+    print(temp)
     print(res)
 
     return res
 
 
-def find_best(row):
-    index = 0
-    max = row[index]
-    for i in range(1, len(row)):
-        if max < row[i]:
-            max = row[i]
-            index = i
-    return index
-
-
-def row(world):
-    global right_balance
-    x = world.car.x
+def world_to_score_board(world):
+    global num_of_steps
+    score_board = list()
     y = world.car.y
-    next_row = list()
 
-    if right_balance == 1:
-        next_row = [(x - 2, y - 1), (x-1, y-1), (x, y-1)]
-    elif right_balance == 0:
-        next_row = [(x - 1, y - 1), (x, y - 1), (x + 1, y - 1)]
-    elif right_balance == -1:
-        next_row = [(x, y - 1), (x + 1, y - 1), (x - 2, y - 1)]
+    for i in range(num_of_steps, -1, -1):
+        score_board.append(pos_to_score(world, row(y-i)))
+    return score_board
 
-    next_row_scores = pos_to_score(world, next_row)
-    best_index = find_best(next_row_scores)
-    if next_row_scores[best_index] == 0 and next_row_scores[1] == 0:
-        # go mid
-        if right_balance == 1:
-            # left
-            right_balance -= 1
-            return actions.LEFT
-        elif right_balance == -1:
+
+def get_connected(x, y):
+    global x1, x2, x3
+    res = list()
+    if x == x1 or x == 0:
+        res.append((0, y - 1))
+        res.append((1, y - 1))
+    elif x == x2 or x == 1:
+        res.append((0, y - 1))
+        res.append((1, y - 1))
+        res.append((2, y - 1))
+    elif x == x3 or x == 2:
+        res.append((1, y - 1))
+        res.append((2, y - 1))
+    return res
+
+
+def best_way(world, score_board):
+    y = len(score_board) - 1
+    x = world.car.x
+
+    if x == x3:
+        x = 2
+    elif x == x2:
+        x = 1
+    elif x == x1:
+        x = 0
+
+    ways = dict()
+    score_def = score_board[y][x]
+    for i in get_connected(x, y):
+        score_i = 0
+        if i[0] == x:
+            score_i = score_board[i[1]][i[0]]
+        elif score_board[i[1]][i[0]] != 10 and score_board[i[1]][i[0]] != 0:
+            score_i = -10
+        for j in get_connected(i[0], i[1]):
+            score_j = 0
+            if j[0] == i[0]:
+                score_j = score_board[j[1]][j[0]]
+            elif score_board[j[1]][j[0]] != 10 and score_board[j[1]][j[0]] != 0:
+                score_j = -10
+            for k in get_connected(j[0], j[1]):
+                score_k = 0
+                if k[0] == j[0]:
+                    score_k = score_board[k[1]][k[0]]
+                elif score_board[k[1]][k[0]] != 10 and score_board[k[1]][k[0]] != 0:
+                    score_k = -10
+                for l in get_connected(k[0], k[1]):
+                    score_l = 0
+                    if l[0] == k[0]:
+                        score_l = score_board[l[1]][l[0]]
+                    elif score_board[l[1]][l[0]] != 10 and score_board[l[1]][l[0]] != 0:
+                        score_l = -10
+                    total_score = score_def + score_i + score_j + score_k + score_l
+                    ways[total_score] = [(x, y), i, j, k, l]
+    for i in ways.keys():
+        print(str(i) + ": ", end="")
+        print(ways[i])
+
+    big = list(ways)[0]
+    for key in ways.keys():
+        if big < key:
+            big = key
+
+    return ways[big]
+
+
+def way_to_actions(way):
+    res = list()
+    for i in range(len(way) - 1):
+        x_0 = way[i][0]
+        x_1 = way[i+1][0]
+
+        if x_1 - x_0 > 0:
             # right
-            right_balance += 1
-            return actions.RIGHT
-        else:
-            # stay
-            return actions.NONE
-    else:
-        # go best
-        best_pos = next_row[best_index]
-        if x - best_pos[0] > 0:
+            res.append(actions.RIGHT)
+        elif x_1 - x_0 < 0:
             # left
-            right_balance -= 1
-            return actions.LEFT
-        elif x - best_pos[0] < 0:
-            # right
-            right_balance += 1
-            return actions.RIGHT
+            res.append(actions.LEFT)
         else:
-            # straight
-            return actions.NONE
+            # mid
+            res.append(actions.NONE)
+    return res
 
 
 def drive(world):
-
-
+    global action_list, cnt, num_of_steps, steps
+    res = actions.NONE
     x = world.car.x
     y = world.car.y
-    obstacle = world.get((x, y-1))
-    if obstacle == obstacles.PENGUIN:
-        return actions.PICKUP
-    elif obstacle == obstacles.WATER:
-        return actions.BRAKE
-    elif obstacle == obstacles.CRACK:
-        return actions.JUMP
-    elif obstacle == obstacles.TRASH:
-        return row(world)
-    elif obstacle == obstacles.BIKE:
-        return row(world)
-    elif obstacle == obstacles.BARRIER:
-        return row(world)
-    return row(world)
+    get_x_values(x)
 
+    # if cnt >= num_of_steps - 1:
+    #     cnt = 0
+    # if cnt == 0:
+    #     score_board = world_to_score_board(world)
+    #     action_list = way_to_actions(best_way(world, score_board))
+    #     print(action_list)
+    #     res = action_list[0]
+    # elif 0 < cnt < num_of_steps - 1:
+    #     res = action_list[cnt]
+    if steps <= 55:
+        score_board = world_to_score_board(world)
+        action_list = way_to_actions(best_way(world, score_board))
+        res = action_list[0]
+    else:
+        if cnt >= num_of_steps - 1:
+            cnt = 0
+        if cnt == 0:
+            score_board = world_to_score_board(world)
+            action_list = way_to_actions(best_way(world, score_board))
+            print(action_list)
+            res = action_list[0]
+        elif 0 < cnt < num_of_steps - 1:
+            res = action_list[cnt]
+
+    if res == actions.NONE:
+        obstacle = world.get((x, y - 1))
+        if obstacle == obstacles.PENGUIN:
+            res = actions.PICKUP
+        elif obstacle == obstacles.WATER:
+            res = actions.BRAKE
+        elif obstacle == obstacles.CRACK:
+            res = actions.JUMP
+
+    cnt += 1
+    steps = (steps + 1) % 60
+    print(steps)
+    return res
